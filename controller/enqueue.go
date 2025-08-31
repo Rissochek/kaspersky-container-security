@@ -13,7 +13,7 @@ import (
 func (controller *Controller) HandleEnqueue(w http.ResponseWriter, r *http.Request) {
 	select {
 	case <- controller.shutdownChan:
-		log.Panicf("task after shutting down is rejected")
+		log.Printf("task after shutting down is rejected")
 		http.Error(w, "server is shutting down, new tasks is not accepting", http.StatusServiceUnavailable)
 		return
 	default:
