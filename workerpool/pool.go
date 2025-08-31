@@ -11,6 +11,7 @@ import (
 func (pool *WorkerPool) HandleWorker(workerId int) {
 	log.Printf("worker %v is starting", workerId)
 	for {
+		//если shutdown не закрыт, то всегда будет выполняться первый case
 		select {
 		case task, ok := <-pool.taskQueue:
 			if !ok {
@@ -20,7 +21,8 @@ func (pool *WorkerPool) HandleWorker(workerId int) {
 			}
 
 			pool.HandleTask(&task)
-
+		//при закрытии shutdown будет выполняться случайный case если очередь не пуста. Это нас устраивает, так как внутри есть еще проверка на наличие задач в очереди
+		//Если же очередь с задачами пуста, то попадая в case с shutdown мы попадем в default, который сообщит о завершении работы горутины с помощью wg.Done.
 		case <-pool.shutdownChan:
 			select {
 			case task, ok := <-pool.taskQueue:
@@ -41,6 +43,9 @@ func (pool *WorkerPool) HandleWorker(workerId int) {
 	}
 }
 
+//Здесь находится логика имитации работы с задачей
+//jitter - пропорциональный к слип тайму, а также симметричный
+//baseSleepTime растет экспоненциально благодаря битовому сдвигу (каждый раз увеличивается степень двойки)
 func (pool *WorkerPool) HandleTask(task *model.Task) {
 	task.Status = model.Running
 	log.Printf("task %v running", task.Id)
