@@ -30,7 +30,7 @@ func (pool *WorkerPool) HandleTask(task *model.Task) {
 
 		failNum := rand.Intn(5)
 		//failNum это что-то из [0, 1, 2, 3, 4] => равенство одному из чисел имеет шанс 1/5 * 100% = 20%
-		if failNum <= 5 {
+		if failNum == 0 {
 			if fail != task.MaxRetries {
 				baseSleepTime := time.Duration(1<<fail) * time.Second
 				jitter := time.Duration(float64(baseSleepTime) * 0.15 * (rand.Float64()*2 - 1))
