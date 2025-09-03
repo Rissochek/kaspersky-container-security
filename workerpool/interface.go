@@ -8,12 +8,11 @@ import (
 
 type WorkerPool struct {
 	taskQueue		chan model.Task
-	shutdownChan 	chan struct{}
 	wg				*sync.WaitGroup
 }
 
-func NewWorkerPool(taskQueue chan model.Task, shutdownChan chan struct{}, wg *sync.WaitGroup) *WorkerPool {
-	return &WorkerPool{taskQueue: taskQueue, shutdownChan: shutdownChan, wg: wg}
+func NewWorkerPool(taskQueue chan model.Task, wg *sync.WaitGroup) *WorkerPool {
+	return &WorkerPool{taskQueue: taskQueue, wg: wg}
 }
 
 type WorkerPoolInterface interface {

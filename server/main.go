@@ -18,12 +18,13 @@ type Server struct {
 	controller   controller.ControllerInterface
 	workerPool   workerpool.WorkerPoolInterface
 	shutdownChan chan struct{}
+	taskQueue	 chan model.Task
 	workers      int
 	wg           *sync.WaitGroup
 }
 
-func NewServer(controller controller.ControllerInterface, workerPool workerpool.WorkerPoolInterface, shutdownChan chan struct{}, workers int, wg *sync.WaitGroup) *Server {
-	return &Server{controller: controller, workerPool: workerPool, shutdownChan: shutdownChan, workers: workers, wg: wg}
+func NewServer(controller controller.ControllerInterface, workerPool workerpool.WorkerPoolInterface, shutdownChan chan struct{}, taskQueue chan model.Task, workers int, wg *sync.WaitGroup) *Server {
+	return &Server{controller: controller, workerPool: workerPool, shutdownChan: shutdownChan, taskQueue:taskQueue, workers: workers, wg: wg}
 }
 
 func InitDependencies() *Server {
@@ -37,9 +38,9 @@ func InitDependencies() *Server {
 	wg.Add(workers)
 
 	controller := controller.NewController(taskQueue, shutdownChan)
-	pool := workerpool.NewWorkerPool(taskQueue, shutdownChan, wg)
+	pool := workerpool.NewWorkerPool(taskQueue, wg)
 
-	return NewServer(controller, pool, shutdownChan, workers, wg)
+	return NewServer(controller, pool, shutdownChan, taskQueue,workers, wg)
 }
 
 func main() {
@@ -62,6 +63,7 @@ func (server *Server) HandleSignals() {
 
 	log.Printf("Received signal: %v", signal)
 	close(server.shutdownChan)
+	close(server.taskQueue)
 
 	server.wg.Wait()
 }
